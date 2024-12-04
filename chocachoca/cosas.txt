@@ -1,0 +1,13 @@
+rcnode
+cd ~/robocomp/components/robocomp-robolab/components/hardware/laser/lidar3D && ./bin/Lidar3D etc/config_helios_webots
+cd ~/robocomp/components/webots-bridge && ./bin/Webots2Robocomp ./etc/config 
+webots
+cd ~/robocomp/components/grupo6/chocachoca && make -j8 && ./bin/chocachoca etc/config
+
+to_do:
+
+Averiguar puntos porque son tan cerca del robot
+
+
+
+

@@ -1,0 +1,13 @@
+CMakeCache.txt
+Makefile
+ejemplo1
+cmake_install.cmake
+ejemplo1_autogen
+cmake-build-debug
+CMakeFiles
+.cmake
+Testing
+.idea
+.qt
+chocachoca/src/chocochoco_autogen
+chocachoca/bin

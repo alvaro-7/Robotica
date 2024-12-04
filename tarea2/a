@@ -1,0 +1,3 @@
+make[2]: *** [src/CMakeFiles/tarea2.dir/build.make:123: src/CMakeFiles/tarea2.dir/specificworker.cpp.o] Interrupción
+make[1]: *** [CMakeFiles/Makefile2:128: src/CMakeFiles/tarea2.dir/all] Interrupción
+make: *** [Makefile:136: all] Interrupción
