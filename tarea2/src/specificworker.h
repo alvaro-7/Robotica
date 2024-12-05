@@ -57,6 +57,10 @@ class SpecificWorker : public GenericWorker
 
         enum class Estado{IDLE, SEARCH_DOOR, ORIENT, GO_THROUGH};
         Estado estado = Estado::SEARCH_DOOR;
+        std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> funcSearchDoor();
+        std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> funcOrient();
+        std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> funcGoThrough();
+
         const float LOW_LOW = 0;
         const float LOW_HIGH = 400;
         const float MIDDLE_LOW = 800;
@@ -110,8 +114,7 @@ class SpecificWorker : public GenericWorker
         SpecificWorker::Lines extract_peaks(const Lines &peaks);
         void draw_doors(const Doors &doors, AbstractGraphicViewer *viewer, QColor = QColor("green"));
 
-        std::tuple<Doors, Doors, Doors>
-        get_doors(const Lines &lines);
+        std::tuple<Doors, Doors, Doors> get_doors(const Lines &lines);
 
         Doors filter_doors(const std::tuple<Doors, Doors, Doors> &doors);
         Doors doors_extractor(const RoboCompLidar3D::TPoints &filtered_points);

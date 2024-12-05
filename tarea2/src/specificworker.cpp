@@ -87,27 +87,33 @@ void SpecificWorker::compute()
     auto res = std::ranges::find(doors, door_target);
     if (res != doors.end()) {
         door_target = *res;
+        // qInfo() << "door_target = " << door_target;
+        std::cout << "Puerta fijada" << endl;;
     } else {
         qInfo() << "No door detected";
         return;
     }
 
+    SpecificWorker::Velocidad vel;
+    std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> mov;
     switch(estado)
     {
-        case Estado::SEARCH_DOOR: {
+        case Estado::IDLE:
+            vel = {0, 0, 0};
+            mov = {SpecificWorker::Estado::SEARCH_DOOR, vel};
+        break;
+
+        case Estado::SEARCH_DOOR:
 
             break;
-        }
+
         case Estado::ORIENT:
             
             break;
-        case Estado::IDLE:
-            
-            break;
+
         case Estado::GO_THROUGH:
             
             break;
-
     }
     try {
 //        auto vel = std::get<1>(mov);
@@ -118,7 +124,18 @@ void SpecificWorker::compute()
 }
 ///////////////////////////////////////////////////////////////////////////////
 
+std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::funcSearchDoor(){
 
+}
+
+std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad>  SpecificWorker::funcOrient(){
+
+}
+
+std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::funcGoThrough(){
+    SpecificWorker::Velocidad vel = {3, 0, 0};
+
+}
 
 float SpecificWorker::break_adv(float rot){
     return rot >= 0 ? std::clamp(rot - 1, 0.f, 1.f) : std::clamp(rot + 1, 0.f, 1.f);
@@ -198,7 +215,7 @@ SpecificWorker::get_doors(const SpecificWorker::Lines &peaks) {
     auto near_door = [dist, THRES_DOOR](auto &doors, auto d){
         for(auto &&old: doors)
         {
-            qInfo() << dist(old.left, d.left) << dist(old.right, d.right) << dist(old.right, d.left) << dist(old.left, d.right);
+            // qInfo() << dist(old.left, d.left) << dist(old.right, d.right) << dist(old.right, d.left) << dist(old.left, d.right);
             if( dist(old.left, d.left) < THRES_DOOR or
                 dist(old.right, d.right) < THRES_DOOR or
                 dist(old.right, d.left) < THRES_DOOR or
