@@ -69,22 +69,32 @@ void SpecificWorker::compute()
 {
     RoboCompLidar3D::TData ldata;
     ldata = lidar3d_proxy->getLidarData("helios", 0, 360, 1);
+//    ldata =  lidar3d_proxy->getLidarData("bpearl", 0, 2*M_PI, 1);
     const auto &points = ldata.points;
     if (points.empty()) return;
-    
+//    std::cout << __FUNCTION__ << " " << ldata.points.size() << std::endl;
+//
+//    RoboCompLidar3D::TPoints filtered_points;
+//    for(const auto &p : ldata.points)
+//        if(p.z < 500 and p.z > 200 )
+//            filtered_points.push_back(RoboCompLidar3D::TPoint{.x=p.x*1000, .y=p.y*1000, .z=p.z*1000});
+//
+//    std::cout << __FUNCTION__ << " " << filtered_points.size() << std::endl;
+
     auto doors = doors_extractor(points);
+    //auto doors = doors_extractor(filtered_points);
+
+    auto res = std::ranges::find(doors, door_target);
+    if (res != doors.end()) {
+        door_target = *res;
+    } else {
+        qInfo() << "No door detected";
+        return;
+    }
 
     switch(estado)
     {
         case Estado::SEARCH_DOOR: {
-            auto doors = doors_extractor(filtered_points);
-            auto res = std::ranges::find(doors, door_target);
-            if (res != doors.end()) {
-                door_target = *res;
-            } else {
-                qInfo() << "No door detected";
-                return;
-            }
 
             break;
         }
@@ -100,9 +110,9 @@ void SpecificWorker::compute()
 
     }
     try {
-        auto vel = std::get<1>(mov);
-        printf("%f %f\n", vel.velx, vel.giro);
-        omnirobot_proxy->setSpeedBase(vel.velx, vel.vely, vel.giro);
+//        auto vel = std::get<1>(mov);
+//        printf("%f %f\n", vel.velx, vel.giro);
+//        omnirobot_proxy->setSpeedBase(vel.velx, vel.vely, vel.giro);
     } catch(const Ice::Exception &e)
     {  std::cout << "Error reading from Camera" << e << std::endl; 	}
 }

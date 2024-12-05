@@ -46,7 +46,7 @@ module RoboCompLidar3D
 		TData getLidarData (string name, float start, float len, int decimationDegreeFactor);
 		TDataImage getLidarDataArrayProyectedInImage (string name);
 		TData getLidarDataProyectedInImage (string name);
-		TData getLidarDataWithThreshold2d (string name, float distance);
+		TData getLidarDataWithThreshold2d (string name, float distance, int decimationDegreeFactor);
 	};
 };
 
