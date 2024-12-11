@@ -99,14 +99,18 @@ void SpecificWorker::compute()
     switch(estado)
     {
         case Estado::IDLE:
-        {
-            SpecificWorker::Velocidad vel = {0, 0, 0};
-            mov = {SpecificWorker::Estado::SEARCH_DOOR, vel};
-        }
-        break;
+            {
+                SpecificWorker::Velocidad vel = {0, 0, 0};
+                mov = {SpecificWorker::Estado::SEARCH_DOOR, vel};
+            }
+            break;
 
         case Estado::SEARCH_DOOR:
             mov = funcSearchDoor(doors);
+            break;
+
+        case Estado::MOVE:
+            
             break;
 
         case Estado::ORIENT:
