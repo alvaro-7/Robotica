@@ -88,23 +88,25 @@ void SpecificWorker::compute()
     if (res != doors.end()) {
         door_target = *res;
         // qInfo() << "door_target = " << door_target;
-        std::cout << "Puerta fijada" << endl;;
+        std::cout << "Puerta fijada" << endl;
     } else {
         qInfo() << "No door detected";
         return;
     }
 
-    SpecificWorker::Velocidad vel;
+
     std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> mov;
     switch(estado)
     {
         case Estado::IDLE:
-            vel = {0, 0, 0};
+        {
+            SpecificWorker::Velocidad vel = {0, 0, 0};
             mov = {SpecificWorker::Estado::SEARCH_DOOR, vel};
+        }
         break;
 
         case Estado::SEARCH_DOOR:
-
+            mov = funcSearchDoor(doors);
             break;
 
         case Estado::ORIENT:
@@ -124,7 +126,21 @@ void SpecificWorker::compute()
 }
 ///////////////////////////////////////////////////////////////////////////////
 
-std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::funcSearchDoor(){
+std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::funcSearchDoor(SpecificWorker::Doors doors){
+    if(!doors.empty()){
+      for(const auto &d: doors){
+        if(d.angulo_robot() < door_target.angulo_robot()){
+          door_target = d;
+        }
+      }
+      SpecificWorker::Velocidad vel = {0, 0, 0};
+      return {SpecificWorker::Estado::ORIENT, vel};
+    }
+    else{
+      SpecificWorker::Velocidad vel = {0, 1, 0.5};
+      std::cout << "No se han detectado puertas, se mueve el robot para buscar" << endl;
+      return {SpecificWorker::Estado::SEARCH_DOOR, vel};
+    }
 
 }
 

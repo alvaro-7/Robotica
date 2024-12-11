@@ -57,7 +57,7 @@ class SpecificWorker : public GenericWorker
 
         enum class Estado{IDLE, SEARCH_DOOR, ORIENT, GO_THROUGH};
         Estado estado = Estado::SEARCH_DOOR;
-        std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> funcSearchDoor();
+        std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> funcSearchDoor(SpecificWorker::Doors doors);
         std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> funcOrient();
         std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> funcGoThrough();
 
