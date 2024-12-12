@@ -208,6 +208,7 @@
   /usr/include/c++/12/cassert \
   /usr/include/c++/12/cctype \
   /usr/include/c++/12/cerrno \
+  /usr/include/c++/12/chrono \
   /usr/include/c++/12/climits \
   /usr/include/c++/12/clocale \
   /usr/include/c++/12/cmath \

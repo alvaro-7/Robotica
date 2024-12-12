@@ -108,67 +108,71 @@ void SpecificWorker::compute()
 
         case Estado::SEARCH_DOOR:
             std::cout << "Estado SEARCH_DOOR" << endl;
-            mov = funcSearchDoor(doors);
+            mov = func_search_door(doors);
             break;
 
         case Estado::MOVE:
             std::cout << "Estado MOVE" << endl;
-            mov = funcMove();
+            mov = func_move();
             break;
 
         case Estado::ORIENT:
             std::cout << "Estado ORIENT" << endl;
-            mov = funcOrient();
+            mov = func_orient();
             break;
 
         case Estado::GO_THROUGH:
             std::cout << "Estado GO_THROUGH" << endl;
-            mov = funcGoThrough();
+            mov = func_go_through();
             break;
     }
     try {
         auto vel = std::get<1>(mov);
         omnirobot_proxy->setSpeedBase(vel.velx, vel.vely, vel.giro);
         estado = std::get<0>(mov);
-        printf("Velocidad: %f %f - Estado cambiado a: %s\n", vel.vely, vel.giro, estado);
+        printf("Velocidad: %f %f - Estado cambiado a: %s\n", vel.vely, vel.giro, SpecificWorker::estado);
     } catch(const Ice::Exception &e)
     {  std::cout << "Error reading from Camera" << e << std::endl; 	}
 }
 ///////////////////////////////////////////////////////////////////////////////
 
-std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::funcSearchDoor(SpecificWorker::Doors doors){
+std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::func_search_door(SpecificWorker::Doors doors){
     if(!doors.empty()){
-      for(const auto &d: doors){
-        if(d.angulo_robot() < door_target.angulo_robot()){
-          door_target = d;
+        for(const auto &d: doors){
+            if(d.angulo_robot() < door_target.angulo_robot()){
+                door_target = d;
+            }
         }
-      }
-      SpecificWorker::Velocidad vel = {0, 0, 0};
-      return {SpecificWorker::Estado::ORIENT, vel};
+        SpecificWorker::Velocidad vel = {0, 0, 0};
+        return {SpecificWorker::Estado::ORIENT, vel};
     }
     else{
-      SpecificWorker::Velocidad vel = {0, 0.3, 0.5};
-      std::cout << "No se han detectado puertas, se mueve el robot para buscar" << endl;
-      return {SpecificWorker::Estado::SEARCH_DOOR, vel};
+        SpecificWorker::Velocidad vel = {0, 0.3, 0.5};
+        std::cout << "No se han detectado puertas, se mueve el robot para buscar" << endl;
+        return {SpecificWorker::Estado::SEARCH_DOOR, vel};
     }
-
 }
 
-std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::funcMove(){
+std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::func_move(){
     SpecificWorker::Velocidad vel = {3, 0, 0};
     return {SpecificWorker::Estado::MOVE, vel};
 }
 
-std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad>  SpecificWorker::funcOrient(){
+std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad>  SpecificWorker::func_orient(){
 
 }
 
-std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::funcGoThrough(){
-//   if(tiempo no inicializado)
-//       Inicializar tiempo
-//       return {SpecificWorker::Estado::GO_THROUGH, {0, 3, 0}};
-//   elseif timer inicializado y tiempo > limite
-//       return {SpecificWorker::Estado::SEARCH_DOOR, {0, 0, 0}};
+std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::func_go_through(){
+    if(!SpecificWorker::timer_inicializado){
+        SpecificWorker::timer_inicializado = true;
+        SpecificWorker::tiempo_inicio = std::chrono::steady_clock::now();
+        return {SpecificWorker::Estado::GO_THROUGH, {0, 3, 0}};
+    }
+    else if(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - SpecificWorker::tiempo_inicio).count() > SpecificWorker::tiempo_limite){
+        SpecificWorker::timer_inicializado = false;
+        return {SpecificWorker::Estado::SEARCH_DOOR, {0, 0, 0}};
+    }
+    return {SpecificWorker::Estado::GO_THROUGH, {0, 3, 0}};
 }
 
 float SpecificWorker::break_adv(float rot){

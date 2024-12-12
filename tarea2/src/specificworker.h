@@ -31,6 +31,7 @@
 #include <abstract_graphic_viewer/abstract_graphic_viewer.h>
 #include <ranges>
 #include <tuple>
+#include <chrono>
 
 class SpecificWorker : public GenericWorker
 {
@@ -89,12 +90,16 @@ class SpecificWorker : public GenericWorker
             float giro;
         };
 
+		std::chrono::steady_clock::time_point tiempo_inicio;
+    	bool timer_inicializado = false;
+    	const int tiempo_limite = 5000;
+
         enum class Estado{IDLE, SEARCH_DOOR, ORIENT, MOVE, GO_THROUGH};
         Estado estado = Estado::SEARCH_DOOR;
-        std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> funcSearchDoor(SpecificWorker::Doors doors);
-        std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> funcMove();
-        std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> funcOrient();
-        std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> funcGoThrough();
+        std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> func_search_door(SpecificWorker::Doors doors);
+        std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> func_move();
+        std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> func_orient();
+        std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> func_go_through();
 
         const float LOW_LOW = 0;
         const float LOW_HIGH = 400;
