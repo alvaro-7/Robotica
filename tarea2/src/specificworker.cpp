@@ -99,6 +99,7 @@ void SpecificWorker::compute()
     switch(estado)
     {
         case Estado::IDLE:
+            std::cout << "Estado IDLE" << endl;
             {
                 SpecificWorker::Velocidad vel = {0, 0, 0};
                 mov = {SpecificWorker::Estado::SEARCH_DOOR, vel};
@@ -106,19 +107,23 @@ void SpecificWorker::compute()
             break;
 
         case Estado::SEARCH_DOOR:
+            std::cout << "Estado SEARCH_DOOR" << endl;
             mov = funcSearchDoor(doors);
             break;
 
         case Estado::MOVE:
-            
+            std::cout << "Estado MOVE" << endl;
+            mov = funcMove();
             break;
 
         case Estado::ORIENT:
-            
+            std::cout << "Estado ORIENT" << endl;
+            mov = funcOrient();
             break;
 
         case Estado::GO_THROUGH:
-            
+            std::cout << "Estado GO_THROUGH" << endl;
+            mov = funcGoThrough();
             break;
     }
     try {
