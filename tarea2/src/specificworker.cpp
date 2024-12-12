@@ -154,8 +154,24 @@ std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::fu
 }
 
 std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::func_move(){
-    SpecificWorker::Velocidad vel = {3, 0, 0};
-    return {SpecificWorker::Estado::MOVE, vel};
+    RoboCompLidar3D::TPoint& p_objetivo = door_target.middle;
+
+    float const_vel = 1.0;  //ESTAS VARIABLES HABRA QUE IR PROBANDO CON VARIOS VALORES PARA ENCONTRAR UNOS BUENOS
+    float const_giro = -0.4; //UNA VEZ QUE SE HAYAN ENCONTRADO BUENOS VALORES SE HACEN CONSTANTES DEL .H
+
+    float objetivo_x = p_objetivo.x;
+    float objetivo_y = p_objetivo.y;
+    float distancia = sqrt(pow(objetivo_x, 2) + pow(objetivo_y, 2));
+
+    if(distancia < 200){ //LA DISTANCIA CUANDO SE ENCUENTRE UNA CON LA QUE FUNCIONA CORRECTAMENTE HAY QUE HACERLA CONSTANTE EN EL .H
+        std::cout << "Distancia a la puerta adecuada, toca orientarse a ella" << endl;
+        return {SpecificWorker::Estado::ORIENT, {0, 0, 0}};
+    }
+    else{
+        float vely = const_vel * distancia;
+        float rot  = const_giro * (atan2(objetivo_x, objetivo_y));
+        return {SpecificWorker::Estado::MOVE, {0, vely, rot}};
+    }
 }
 
 std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad>  SpecificWorker::func_orient(){
@@ -173,17 +189,6 @@ std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::fu
         return {SpecificWorker::Estado::SEARCH_DOOR, {0, 0, 0}};
     }
     return {SpecificWorker::Estado::GO_THROUGH, {0, 3, 0}};
-}
-
-float SpecificWorker::break_adv(float rot){
-    return rot >= 0 ? std::clamp(rot - 1, 0.f, 1.f) : std::clamp(rot + 1, 0.f, 1.f);
-}
-
-float SpecificWorker::break_rot(float rot){
-    return rot >= 0 ? std::clamp(rot - 1, 0.f, 1.f) : std::clamp(rot + 1, 0.f, 1.f);
-}
-float SpecificWorker::move_robot(float rot){
-    return rot >= 0 ? std::clamp(rot - 1, 0.f, 1.f) : std::clamp(rot + 1, 0.f, 1.f);
 }
 
 SpecificWorker::Doors
@@ -216,7 +221,7 @@ SpecificWorker::Lines SpecificWorker::extract_lines(const RoboCompLidar3D::TPoin
 
 SpecificWorker::Lines SpecificWorker::extract_peaks(const SpecificWorker::Lines &lines) {
     Lines peaks;
-    const float THRES_PEAK = 1000;
+    const float THRES_PEAK = 1000; //ESTO CUANDO SE VAYA A HACER LA IMPLEMENTACION FINAL HAY QUE PONERLO EN EL .H
 
     for (const auto &both: iter::sliding_window(lines.low, 2))
         if (fabs(both[1].r - both[0].r) > THRES_PEAK) {
@@ -248,7 +253,7 @@ SpecificWorker::get_doors(const SpecificWorker::Lines &peaks) {
         return std::hypot(a.x-b.x, a.y-b.y);
     };
 
-    const float THRES_DOOR = 500;
+    const float THRES_DOOR = 500; //ESTO CUANDO SE VAYA A HACER LA IMPLEMENTACION FINAL HAY QUE PONERLO EN EL .H
 
     auto near_door = [dist, THRES_DOOR](auto &doors, auto d){
         for(auto &&old: doors)
