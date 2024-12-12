@@ -49,6 +49,40 @@ class SpecificWorker : public GenericWorker
         bool startup_check_flag;
         AbstractGraphicViewer *viewer;
 
+        struct Door
+        {
+            RoboCompLidar3D::TPoint left, right, middle;
+            const float THRESHOLD = 500;
+            Door(){ left = right = middle = RoboCompLidar3D::TPoint(0,0,0);};
+            Door(const RoboCompLidar3D::TPoint &left_, const RoboCompLidar3D::TPoint &right_) : left(left_), right(right_)
+            {
+                middle.x = (left.x + right.x)/2;
+                middle.y = (left.y + right.y)/2;
+            };
+            bool operator==(const Door &d) const
+            {
+                return std::hypot(d.middle.x - middle.x, d.middle.y - middle.y) < THRESHOLD;
+            };
+            // A partir de C++20 si defines el "==" se te define solo el "!=" como el contrario del otro.
+            /*bool operator!=(const Door &d) const
+            {
+                return !(std::hypot(d.middle.x - middle.x, d.middle.y - middle.y) < THRESHOLD);
+            };*/
+            Door& operator=(const Door &d)
+            {
+                left = d.left;
+                right = d.right;
+                middle = d.middle;
+                return *this;
+            };
+            void print(){};
+            float angulo_robot() const{
+                return atan2(middle.x, middle.y);
+            }
+        };
+        using Doors = std::vector<Door>;
+        Door door_target;
+
         struct Velocidad{
             float velx;
             float vely;
@@ -58,6 +92,7 @@ class SpecificWorker : public GenericWorker
         enum class Estado{IDLE, SEARCH_DOOR, ORIENT, MOVE, GO_THROUGH};
         Estado estado = Estado::SEARCH_DOOR;
         std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> funcSearchDoor(SpecificWorker::Doors doors);
+        std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> funcMove();
         std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> funcOrient();
         std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> funcGoThrough();
 
@@ -73,40 +108,6 @@ class SpecificWorker : public GenericWorker
         {
             RoboCompLidar3D::TPoints low, middle, high;
         };
-
-        struct Door
-        {
-            RoboCompLidar3D::TPoint left, right, middle;
-            const float THRESHOLD = 500;
-            Door(){ left = right = middle = RoboCompLidar3D::TPoint(0,0,0);};
-            Door(const RoboCompLidar3D::TPoint &left_, const RoboCompLidar3D::TPoint &right_) : left(left_), right(right_)
-                {
-                    middle.x = (left.x + right.x)/2;
-                    middle.y = (left.y + right.y)/2;
-                };
-            bool operator==(const Door &d) const
-                {
-                    return std::hypot(d.middle.x - middle.x, d.middle.y - middle.y) < THRESHOLD;
-                };
-            // A partir de C++20 si defines el "==" se te define solo el "!=" como el contrario del otro.
-            /*bool operator!=(const Door &d) const
-            {
-                return !(std::hypot(d.middle.x - middle.x, d.middle.y - middle.y) < THRESHOLD);
-            };*/
-            Door& operator=(const Door &d)
-                {
-                    left = d.left;
-                    right = d.right;
-                    middle = d.middle;
-                    return *this;
-                };
-            void print(){};
-            float angulo_robot() const{
-                return atan2(middle.x, middle.y);
-            }
-        };
-        using Doors = std::vector<Door>;
-        Door door_target;
 
         void draw_lidar(const RoboCompLidar3D::TPoints &points, AbstractGraphicViewer *viewer);
         Lines extract_lines(const RoboCompLidar3D::TPoints &points);

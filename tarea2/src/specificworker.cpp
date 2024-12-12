@@ -122,9 +122,10 @@ void SpecificWorker::compute()
             break;
     }
     try {
-//        auto vel = std::get<1>(mov);
-//        printf("%f %f\n", vel.velx, vel.giro);
-//        omnirobot_proxy->setSpeedBase(vel.velx, vel.vely, vel.giro);
+        auto vel = std::get<1>(mov);
+        omnirobot_proxy->setSpeedBase(vel.velx, vel.vely, vel.giro);
+        estado = std::get<0>(mov);
+        printf("Velocidad: %f %f - Estado cambiado a: %s\n", vel.vely, vel.giro, estado);
     } catch(const Ice::Exception &e)
     {  std::cout << "Error reading from Camera" << e << std::endl; 	}
 }
@@ -141,11 +142,16 @@ std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::fu
       return {SpecificWorker::Estado::ORIENT, vel};
     }
     else{
-      SpecificWorker::Velocidad vel = {0, 1, 0.5};
+      SpecificWorker::Velocidad vel = {0, 0.3, 0.5};
       std::cout << "No se han detectado puertas, se mueve el robot para buscar" << endl;
       return {SpecificWorker::Estado::SEARCH_DOOR, vel};
     }
 
+}
+
+std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::funcMove(){
+    SpecificWorker::Velocidad vel = {3, 0, 0};
+    return {SpecificWorker::Estado::MOVE, vel};
 }
 
 std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad>  SpecificWorker::funcOrient(){
@@ -153,8 +159,11 @@ std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad>  SpecificWorker::f
 }
 
 std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::funcGoThrough(){
-    SpecificWorker::Velocidad vel = {3, 0, 0};
-
+//   if(tiempo no inicializado)
+//       Inicializar tiempo
+//       return {SpecificWorker::Estado::GO_THROUGH, {0, 3, 0}};
+//   elseif timer inicializado y tiempo > limite
+//       return {SpecificWorker::Estado::SEARCH_DOOR, {0, 0, 0}};
 }
 
 float SpecificWorker::break_adv(float rot){
