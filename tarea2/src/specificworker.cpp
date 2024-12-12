@@ -175,7 +175,11 @@ std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::fu
 }
 
 std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad>  SpecificWorker::func_orient(){
-
+    //if(¿angulo < +x || angulo >-x?)
+        //return{GO_THROUGH, {0,0,0}}
+    //else
+        //rot = angulo * const_rot
+        //return {ORIENT, {0,0,0}}
 }
 
 std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::func_go_through(){
