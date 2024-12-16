@@ -91,7 +91,6 @@ void SpecificWorker::compute()
         std::cout << "Puerta fijada" << endl;
     } else {
         qInfo() << "No door detected";
-        return;
     }
 
 
@@ -130,7 +129,7 @@ void SpecificWorker::compute()
         auto vel = std::get<1>(mov);
         omnirobot_proxy->setSpeedBase(vel.velx, vel.vely, vel.giro);
         estado = std::get<0>(mov);
-        printf("Velocidad: %f %f - Estado cambiado a: %s\n", vel.vely, vel.giro, SpecificWorker::estado);
+        //printf("Velocidad: %f %f - Estado cambiado a: %s\n", vel.vely, vel.giro, SpecificWorker::estado);
     } catch(const Ice::Exception &e)
     {  std::cout << "Error reading from Camera" << e << std::endl; 	}
 }
@@ -144,7 +143,7 @@ std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::fu
             }
         }
         SpecificWorker::Velocidad vel = {0, 0, 0};
-        return {SpecificWorker::Estado::ORIENT, vel};
+        return {SpecificWorker::Estado::MOVE, vel};
     }
     else{
         SpecificWorker::Velocidad vel = {0, 0.3, 0.5};
@@ -168,18 +167,20 @@ std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::fu
         return {SpecificWorker::Estado::ORIENT, {0, 0, 0}};
     }
     else{
-        float vely = const_vel * distancia;
+        float vely = const_vel; //* distancia;
         float rot  = const_giro * (atan2(objetivo_x, objetivo_y));
         return {SpecificWorker::Estado::MOVE, {0, vely, rot}};
     }
 }
 
 std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad>  SpecificWorker::func_orient(){
-    //if(¿angulo < +x || angulo >-x?)
-        //return{GO_THROUGH, {0,0,0}}
-    //else
-        //rot = angulo * const_rot
-        //return {ORIENT, {0,0,0}}
+    float const_rot = -0.4;
+    if(door_target.angulo_robot() < 0.05 || door_target.angulo_robot() > -0.05){ //UNA VEZ ENCONTRADO UNOS BUENOS PARAMETROS, HACERLOS UNA CONSTANTE
+        return{SpecificWorker::Estado::GO_THROUGH, {0,0,0}};
+    }
+    else{
+        return {SpecificWorker::Estado::ORIENT, {0,0,const_rot * door_target.angulo_robot()}};
+    }
 }
 
 std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::func_go_through(){
