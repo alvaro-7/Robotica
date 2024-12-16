@@ -146,7 +146,7 @@ std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::fu
         return {SpecificWorker::Estado::MOVE, vel};
     }
     else{
-        SpecificWorker::Velocidad vel = {0, 0.3, 0.5};
+        SpecificWorker::Velocidad vel = {0.3, 0, 0.5};
         std::cout << "No se han detectado puertas, se mueve el robot para buscar" << endl;
         return {SpecificWorker::Estado::SEARCH_DOOR, vel};
     }
@@ -155,21 +155,21 @@ std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::fu
 std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::func_move(){
     RoboCompLidar3D::TPoint& p_objetivo = door_target.middle;
 
-    float const_vel = 1.0;  //ESTAS VARIABLES HABRA QUE IR PROBANDO CON VARIOS VALORES PARA ENCONTRAR UNOS BUENOS
+    float const_vel = 200;  //ESTAS VARIABLES HABRA QUE IR PROBANDO CON VARIOS VALORES PARA ENCONTRAR UNOS BUENOS
     float const_giro = -0.4; //UNA VEZ QUE SE HAYAN ENCONTRADO BUENOS VALORES SE HACEN CONSTANTES DEL .H
 
     float objetivo_x = p_objetivo.x;
     float objetivo_y = p_objetivo.y;
     float distancia = sqrt(pow(objetivo_x, 2) + pow(objetivo_y, 2));
 
-    if(distancia < 200){ //LA DISTANCIA CUANDO SE ENCUENTRE UNA CON LA QUE FUNCIONA CORRECTAMENTE HAY QUE HACERLA CONSTANTE EN EL .H
+    if(distancia < 150){ //LA DISTANCIA CUANDO SE ENCUENTRE UNA CON LA QUE FUNCIONA CORRECTAMENTE HAY QUE HACERLA CONSTANTE EN EL .H
         std::cout << "Distancia a la puerta adecuada, toca orientarse a ella" << endl;
         return {SpecificWorker::Estado::ORIENT, {0, 0, 0}};
     }
     else{
-        float vely = const_vel; //* distancia;
-        float rot  = const_giro * (atan2(objetivo_x, objetivo_y));
-        return {SpecificWorker::Estado::MOVE, {0, vely, rot}};
+        float rot  = const_giro * (atan2(objetivo_y, objetivo_x));
+        float vely = const_vel * (1.0 - fabs(rot));
+        return {SpecificWorker::Estado::MOVE, {vely, 0, rot}};
     }
 }
 
@@ -187,13 +187,13 @@ std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::fu
     if(!SpecificWorker::timer_inicializado){
         SpecificWorker::timer_inicializado = true;
         SpecificWorker::tiempo_inicio = std::chrono::steady_clock::now();
-        return {SpecificWorker::Estado::GO_THROUGH, {0, 3, 0}};
+        return {SpecificWorker::Estado::GO_THROUGH, {350, 0, 0}};
     }
     else if(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - SpecificWorker::tiempo_inicio).count() > SpecificWorker::tiempo_limite){
         SpecificWorker::timer_inicializado = false;
         return {SpecificWorker::Estado::SEARCH_DOOR, {0, 0, 0}};
     }
-    return {SpecificWorker::Estado::GO_THROUGH, {0, 3, 0}};
+    return {SpecificWorker::Estado::GO_THROUGH, {350, 0, 0}};
 }
 
 SpecificWorker::Doors
