@@ -187,13 +187,13 @@ std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::fu
     if(!SpecificWorker::timer_inicializado){
         SpecificWorker::timer_inicializado = true;
         SpecificWorker::tiempo_inicio = std::chrono::steady_clock::now();
-        return {SpecificWorker::Estado::GO_THROUGH, {350, 0, 0}};
+        return {SpecificWorker::Estado::GO_THROUGH, {450, 0, 0}};
     }
     else if(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - SpecificWorker::tiempo_inicio).count() > SpecificWorker::tiempo_limite){
         SpecificWorker::timer_inicializado = false;
         return {SpecificWorker::Estado::SEARCH_DOOR, {0, 0, 0}};
     }
-    return {SpecificWorker::Estado::GO_THROUGH, {350, 0, 0}};
+    return {SpecificWorker::Estado::GO_THROUGH, {450, 0, 0}};
 }
 
 SpecificWorker::Doors
