@@ -129,7 +129,7 @@ void SpecificWorker::compute()
         auto vel = std::get<1>(mov);
         omnirobot_proxy->setSpeedBase(vel.velx, vel.vely, vel.giro);
         estado = std::get<0>(mov);
-        //printf("Velocidad: %f %f - Estado cambiado a: %s\n", vel.vely, vel.giro, SpecificWorker::estado);
+        printf("Velocidad: %f %f - \n", vel.velx, vel.giro);
     } catch(const Ice::Exception &e)
     {  std::cout << "Error reading from Camera" << e << std::endl; 	}
 }
@@ -168,8 +168,8 @@ std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::fu
     }
     else{
         float rot  = const_giro * (atan2(objetivo_y, objetivo_x));
-        float vely = const_vel * (1.0 - fabs(rot));
-        return {SpecificWorker::Estado::MOVE, {vely, 0, rot}};
+        float velx = const_vel * (1.0 - fabs(rot));
+        return {SpecificWorker::Estado::MOVE, {velx, 0, rot}};
     }
 }
 
