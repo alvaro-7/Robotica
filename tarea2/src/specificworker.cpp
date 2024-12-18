@@ -162,20 +162,21 @@ std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::fu
     float objetivo_y = p_objetivo.y;
     float distancia = sqrt(pow(objetivo_x, 2) + pow(objetivo_y, 2));
 
-    if(distancia < 150){ //LA DISTANCIA CUANDO SE ENCUENTRE UNA CON LA QUE FUNCIONA CORRECTAMENTE HAY QUE HACERLA CONSTANTE EN EL .H
+    if(distancia < 1000){ //LA DISTANCIA CUANDO SE ENCUENTRE UNA CON LA QUE FUNCIONA CORRECTAMENTE HAY QUE HACERLA CONSTANTE EN EL .H
         std::cout << "Distancia a la puerta adecuada, toca orientarse a ella" << endl;
         return {SpecificWorker::Estado::ORIENT, {0, 0, 0}};
     }
     else{
         float rot  = const_giro * (atan2(objetivo_y, objetivo_x));
         float velx = const_vel * (1.0 - fabs(rot));
-        return {SpecificWorker::Estado::MOVE, {velx, 0, rot}};
+        return {SpecificWorker::Estado::MOVE, {0, velx, rot}};
     }
 }
 
 std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad>  SpecificWorker::func_orient(){
-    float const_rot = -0.4;
-    if(door_target.angulo_robot() < 0.05 || door_target.angulo_robot() > -0.05){ //UNA VEZ ENCONTRADO UNOS BUENOS PARAMETROS, HACERLOS UNA CONSTANTE
+    float const_rot = -0.1;
+    //if(door_target.angulo_robot() < 0.05 and door_target.angulo_robot() > -0.05){ //UNA VEZ ENCONTRADO UNOS BUENOS PARAMETROS, HACERLOS UNA CONSTANTE
+    if(fabs(door_target.angulo_robot()) < 0.05){
         return{SpecificWorker::Estado::GO_THROUGH, {0,0,0}};
     }
     else{
@@ -187,13 +188,13 @@ std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::fu
     if(!SpecificWorker::timer_inicializado){
         SpecificWorker::timer_inicializado = true;
         SpecificWorker::tiempo_inicio = std::chrono::steady_clock::now();
-        return {SpecificWorker::Estado::GO_THROUGH, {450, 0, 0}};
+        return {SpecificWorker::Estado::GO_THROUGH, {0, 450, 0}};
     }
     else if(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - SpecificWorker::tiempo_inicio).count() > SpecificWorker::tiempo_limite){
         SpecificWorker::timer_inicializado = false;
         return {SpecificWorker::Estado::SEARCH_DOOR, {0, 0, 0}};
     }
-    return {SpecificWorker::Estado::GO_THROUGH, {450, 0, 0}};
+    return {SpecificWorker::Estado::GO_THROUGH, {0, 450, 0}};
 }
 
 SpecificWorker::Doors
@@ -214,12 +215,17 @@ SpecificWorker::Lines SpecificWorker::extract_lines(const RoboCompLidar3D::TPoin
     Lines lines;
     for(const auto &p: points)
     {
-        if(p.z > LOW_LOW and p.z < LOW_HIGH)
-            lines.low.push_back(p);
-        if(p.z > MIDDLE_LOW and p.z < MIDDLE_HIGH)
-            lines.middle.push_back(p);
-        if(p.z > HIGH_LOW and p.z < HIGH_HIGH)
+//        if(p.z > LOW_LOW and p.z < LOW_HIGH)
+//            lines.low.push_back(p);
+//        if(p.z > MIDDLE_LOW and p.z < MIDDLE_HIGH)
+//            lines.middle.push_back(p);
+//        if(p.z > HIGH_LOW and p.z < HIGH_HIGH)
+//            lines.high.push_back(p);
+		if(p.z > 1000 and p.z < 2000){
+        	lines.low.push_back(p);
             lines.high.push_back(p);
+            lines.middle.push_back(p);
+		}
     }
     return lines;
 }
@@ -258,7 +264,7 @@ SpecificWorker::get_doors(const SpecificWorker::Lines &peaks) {
         return std::hypot(a.x-b.x, a.y-b.y);
     };
 
-    const float THRES_DOOR = 500; //ESTO CUANDO SE VAYA A HACER LA IMPLEMENTACION FINAL HAY QUE PONERLO EN EL .H
+    const float THRES_DOOR = 400; //500 //ESTO CUANDO SE VAYA A HACER LA IMPLEMENTACION FINAL HAY QUE PONERLO EN EL .H
 
     auto near_door = [dist, THRES_DOOR](auto &doors, auto d){
         for(auto &&old: doors)
