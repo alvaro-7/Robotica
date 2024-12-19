@@ -85,7 +85,7 @@ void SpecificWorker::compute()
     //auto doors = doors_extractor(filtered_points);
 
     auto res = std::ranges::find(doors, door_target);
-    if (res != doors.end()) {
+    if (res != doors.end() or doors.size() == 1) {
         door_target = *res;
         // qInfo() << "door_target = " << door_target;
         std::cout << "Puerta fijada" << endl;
