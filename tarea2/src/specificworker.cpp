@@ -161,8 +161,9 @@ std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::fu
     float objetivo_x = p_objetivo.x;
     float objetivo_y = p_objetivo.y;
     float distancia = sqrt(pow(objetivo_x, 2) + pow(objetivo_y, 2));
+    cout << "Distancia: " << distancia << endl;
 
-    if(distancia < 150){ //LA DISTANCIA CUANDO SE ENCUENTRE UNA CON LA QUE FUNCIONA CORRECTAMENTE HAY QUE HACERLA CONSTANTE EN EL .H
+    if(distancia < 700){ //LA DISTANCIA CUANDO SE ENCUENTRE UNA CON LA QUE FUNCIONA CORRECTAMENTE HAY QUE HACERLA CONSTANTE EN EL .H
         std::cout << "Distancia a la puerta adecuada, toca orientarse a ella" << endl;
         return {SpecificWorker::Estado::ORIENT, {0, 0, 0}};
     }
@@ -174,12 +175,15 @@ std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::fu
 }
 
 std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad>  SpecificWorker::func_orient(){
-    float const_rot = -0.4;
-    if(door_target.angulo_robot() < 0.05 || door_target.angulo_robot() > -0.05){ //UNA VEZ ENCONTRADO UNOS BUENOS PARAMETROS, HACERLOS UNA CONSTANTE
+    float const_rot = -0.1;
+    // float angulo_robot = door_target.angulo_robot();
+    float angulo_robot = atan2(door_target.middle.y, door_target.middle.x);
+    cout << "Angulo_robot: " << angulo_robot << endl;
+    if( angulo_robot < 0.05 && angulo_robot > -0.05){ //UNA VEZ ENCONTRADO UNOS BUENOS PARAMETROS, HACERLOS UNA CONSTANTE
         return{SpecificWorker::Estado::GO_THROUGH, {0,0,0}};
     }
     else{
-        return {SpecificWorker::Estado::ORIENT, {0,0,const_rot * door_target.angulo_robot()}};
+        return {SpecificWorker::Estado::ORIENT, {0,0,const_rot * angulo_robot}};
     }
 }
 
