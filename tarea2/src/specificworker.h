@@ -92,7 +92,7 @@ class SpecificWorker : public GenericWorker
 
 		std::chrono::steady_clock::time_point tiempo_inicio;
     	bool timer_inicializado = false;
-    	const int tiempo_limite = 12000;
+    	const int tiempo_limite = 14000;
 
         enum class Estado{IDLE, SEARCH_DOOR, ORIENT, MOVE, GO_THROUGH};
         Estado estado = Estado::SEARCH_DOOR;

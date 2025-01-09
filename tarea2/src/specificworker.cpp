@@ -85,12 +85,16 @@ void SpecificWorker::compute()
     //auto doors = doors_extractor(filtered_points);
 
     auto res = std::ranges::find(doors, door_target);
-    if (res != doors.end()) {
+    if (res != doors.end() or doors.size() == 1) {
         door_target = *res;
         // qInfo() << "door_target = " << door_target;
         std::cout << "Puerta fijada" << endl;
     } else {
-        qInfo() << "No door detected";
+        if(estado != SpecificWorker::Estado::GO_THROUGH){
+    		estado = SpecificWorker::Estado::SEARCH_DOOR;
+        	omnirobot_proxy->setSpeedBase(0, 0, 0);
+        }
+    	qInfo() << "No door detected";
     }
 
 
@@ -161,7 +165,7 @@ std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::fu
     float objetivo_x = p_objetivo.x;
     float objetivo_y = p_objetivo.y;
     float distancia = sqrt(pow(objetivo_x, 2) + pow(objetivo_y, 2));
-    cout << "Distancia: " << distancia << endl;
+	cout << "Distancia: " << distancia << endl;
 
     if(distancia < 700){ //LA DISTANCIA CUANDO SE ENCUENTRE UNA CON LA QUE FUNCIONA CORRECTAMENTE HAY QUE HACERLA CONSTANTE EN EL .H
         std::cout << "Distancia a la puerta adecuada, toca orientarse a ella" << endl;
@@ -176,7 +180,7 @@ std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::fu
 
 std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad>  SpecificWorker::func_orient(){
     float const_rot = -0.1;
-    // float angulo_robot = door_target.angulo_robot();
+    //float angulo_robot = door_target.angulo_robot();
     float angulo_robot = atan2(door_target.middle.y, door_target.middle.x);
     cout << "Angulo_robot: " << angulo_robot << endl;
     if( angulo_robot < 0.05 && angulo_robot > -0.05){ //UNA VEZ ENCONTRADO UNOS BUENOS PARAMETROS, HACERLOS UNA CONSTANTE
@@ -218,12 +222,17 @@ SpecificWorker::Lines SpecificWorker::extract_lines(const RoboCompLidar3D::TPoin
     Lines lines;
     for(const auto &p: points)
     {
-        if(p.z > LOW_LOW and p.z < LOW_HIGH)
-            lines.low.push_back(p);
-        if(p.z > MIDDLE_LOW and p.z < MIDDLE_HIGH)
-            lines.middle.push_back(p);
-        if(p.z > HIGH_LOW and p.z < HIGH_HIGH)
+//        if(p.z > LOW_LOW and p.z < LOW_HIGH)
+//            lines.low.push_back(p);
+//        if(p.z > MIDDLE_LOW and p.z < MIDDLE_HIGH)
+//            lines.middle.push_back(p);
+//        if(p.z > HIGH_LOW and p.z < HIGH_HIGH)
+//            lines.high.push_back(p);
+		if(p.z > 1000 and p.z < 2000){
+        	lines.low.push_back(p);
             lines.high.push_back(p);
+            lines.middle.push_back(p);
+		}
     }
     return lines;
 }
@@ -242,10 +251,10 @@ SpecificWorker::Lines SpecificWorker::extract_peaks(const SpecificWorker::Lines 
         if (fabs(both[1].r - both[0].r) > THRES_PEAK) {
             if (both[0].r < both[1].r) peaks.middle.push_back(both[0]);
             else peaks.middle.push_back(both[1]);
-        }
+            }
 
-    for(const auto &both: iter::sliding_window(lines.high, 2))
-        if(fabs(both[1].r - both[0].r) > THRES_PEAK) {
+        for(const auto &both: iter::sliding_window(lines.high, 2))
+            if(fabs(both[1].r - both[0].r) > THRES_PEAK) {
             if (both[0].r < both[1].r) peaks.high.push_back(both[0]);
             else peaks.high.push_back(both[1]);
         }
@@ -262,7 +271,7 @@ SpecificWorker::get_doors(const SpecificWorker::Lines &peaks) {
         return std::hypot(a.x-b.x, a.y-b.y);
     };
 
-    const float THRES_DOOR = 500; //ESTO CUANDO SE VAYA A HACER LA IMPLEMENTACION FINAL HAY QUE PONERLO EN EL .H
+    const float THRES_DOOR = 400; //500 //ESTO CUANDO SE VAYA A HACER LA IMPLEMENTACION FINAL HAY QUE PONERLO EN EL .H
 
     auto near_door = [dist, THRES_DOOR](auto &doors, auto d){
         for(auto &&old: doors)
