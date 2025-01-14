@@ -152,7 +152,7 @@ std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::fu
         return {SpecificWorker::Estado::MOVE, vel};
     }
     else{
-        SpecificWorker::Velocidad vel = {0.3, 0, 0.5};
+        SpecificWorker::Velocidad vel = {0.3, 0, -0.5};
         std::cout << "No se han detectado puertas, se mueve el robot para buscar" << endl;
         return {SpecificWorker::Estado::SEARCH_DOOR, vel};
     }
@@ -174,7 +174,8 @@ std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::fu
         return {SpecificWorker::Estado::ORIENT, {0, 0, 0}};
     }
     else{
-        float rot  = const_giro * (atan2(objetivo_x, objetivo_y));
+        //float rot  = const_giro * (atan2(objetivo_x, objetivo_y));
+        float rot  = const_giro * door_target.angulo_robot();
         float velx = const_vel * (1.0 - fabs(rot));
         return {SpecificWorker::Estado::MOVE, {0, velx, rot}};
     }
