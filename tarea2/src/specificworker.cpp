@@ -144,7 +144,6 @@ std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::fu
     if(!doors.empty()){
         for(const auto &d: doors){
             if(d.angulo_robot() < door_target.angulo_robot()){
-            //if(atan2(d.middle.y, d.middle.x) < atan2(door_target.middle.y, door_target.middle.x)){
                 door_target = d;
             }
         }
@@ -174,7 +173,6 @@ std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::fu
         return {SpecificWorker::Estado::ORIENT, {0, 0, 0}};
     }
     else{
-        //float rot  = const_giro * (atan2(objetivo_x, objetivo_y));
         float rot  = const_giro * door_target.angulo_robot();
         float velx = const_vel * (1.0 - fabs(rot));
         return {SpecificWorker::Estado::MOVE, {0, velx, rot}};
@@ -184,7 +182,6 @@ std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::fu
 std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad>  SpecificWorker::func_orient(){
     float const_rot = -0.4;
     float angulo_robot = door_target.angulo_robot();
-    //float angulo_robot = atan2(door_target.middle.y, door_target.middle.x);
     cout << "Angulo_robot: " << angulo_robot << endl;
     if( angulo_robot < 0.01 && angulo_robot > -0.01){ //UNA VEZ ENCONTRADO UNOS BUENOS PARAMETROS, HACERLOS UNA CONSTANTE
         return{SpecificWorker::Estado::GO_THROUGH, {0,0,0}};
