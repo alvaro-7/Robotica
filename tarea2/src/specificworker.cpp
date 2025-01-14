@@ -92,6 +92,7 @@ void SpecificWorker::compute()
     } else {
         if(estado != SpecificWorker::Estado::GO_THROUGH){
     		estado = SpecificWorker::Estado::SEARCH_DOOR;
+            //estado = SpecificWorker::Estado::IDLE; ////
         	omnirobot_proxy->setSpeedBase(0, 0, 0);
         }
     	qInfo() << "No door detected";
@@ -105,7 +106,7 @@ void SpecificWorker::compute()
             std::cout << "Estado IDLE" << endl;
             {
                 SpecificWorker::Velocidad vel = {0, 0, 0};
-                mov = {SpecificWorker::Estado::SEARCH_DOOR, vel};
+                mov = {SpecificWorker::Estado::IDLE, vel};
             }
             break;
 
@@ -143,6 +144,7 @@ std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::fu
     if(!doors.empty()){
         for(const auto &d: doors){
             if(d.angulo_robot() < door_target.angulo_robot()){
+            //if(atan2(d.middle.y, d.middle.x) < atan2(door_target.middle.y, door_target.middle.x)){
                 door_target = d;
             }
         }
@@ -160,28 +162,28 @@ std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::fu
     RoboCompLidar3D::TPoint& p_objetivo = door_target.middle;
 
     float const_vel = 200;  //ESTAS VARIABLES HABRA QUE IR PROBANDO CON VARIOS VALORES PARA ENCONTRAR UNOS BUENOS
-    float const_giro = -0.4; //UNA VEZ QUE SE HAYAN ENCONTRADO BUENOS VALORES SE HACEN CONSTANTES DEL .H
+    float const_giro = 0.4; //UNA VEZ QUE SE HAYAN ENCONTRADO BUENOS VALORES SE HACEN CONSTANTES DEL .H
 
     float objetivo_x = p_objetivo.x;
     float objetivo_y = p_objetivo.y;
     float distancia = sqrt(pow(objetivo_x, 2) + pow(objetivo_y, 2));
 	cout << "Distancia: " << distancia << endl;
 
-    if(distancia < 800){ //LA DISTANCIA CUANDO SE ENCUENTRE UNA CON LA QUE FUNCIONA CORRECTAMENTE HAY QUE HACERLA CONSTANTE EN EL .H
+    if(distancia < 900){ //LA DISTANCIA CUANDO SE ENCUENTRE UNA CON LA QUE FUNCIONA CORRECTAMENTE HAY QUE HACERLA CONSTANTE EN EL .H
         std::cout << "Distancia a la puerta adecuada, toca orientarse a ella" << endl;
         return {SpecificWorker::Estado::ORIENT, {0, 0, 0}};
     }
     else{
-        float rot  = const_giro * (atan2(objetivo_y, objetivo_x));
+        float rot  = const_giro * (atan2(objetivo_x, objetivo_y));
         float velx = const_vel * (1.0 - fabs(rot));
-        return {SpecificWorker::Estado::MOVE, {velx, 0, rot}};
+        return {SpecificWorker::Estado::MOVE, {0, velx, rot}};
     }
 }
 
 std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad>  SpecificWorker::func_orient(){
     float const_rot = -0.4;
-    //float angulo_robot = door_target.angulo_robot();
-    float angulo_robot = atan2(door_target.middle.y, door_target.middle.x);
+    float angulo_robot = door_target.angulo_robot();
+    //float angulo_robot = atan2(door_target.middle.y, door_target.middle.x);
     cout << "Angulo_robot: " << angulo_robot << endl;
     if( angulo_robot < 0.01 && angulo_robot > -0.01){ //UNA VEZ ENCONTRADO UNOS BUENOS PARAMETROS, HACERLOS UNA CONSTANTE
         return{SpecificWorker::Estado::GO_THROUGH, {0,0,0}};
@@ -195,13 +197,13 @@ std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::fu
     if(!SpecificWorker::timer_inicializado){
         SpecificWorker::timer_inicializado = true;
         SpecificWorker::tiempo_inicio = std::chrono::steady_clock::now();
-        return {SpecificWorker::Estado::GO_THROUGH, {450, 0, 0}};
+        return {SpecificWorker::Estado::GO_THROUGH, {0, 450, 0}};
     }
     else if(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - SpecificWorker::tiempo_inicio).count() > SpecificWorker::tiempo_limite){
         SpecificWorker::timer_inicializado = false;
         return {SpecificWorker::Estado::SEARCH_DOOR, {0, 0, 0}};
     }
-    return {SpecificWorker::Estado::GO_THROUGH, {450, 0, 0}};
+    return {SpecificWorker::Estado::GO_THROUGH, {0, 450, 0}};
 }
 
 SpecificWorker::Doors
