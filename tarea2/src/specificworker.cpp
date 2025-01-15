@@ -90,7 +90,7 @@ void SpecificWorker::compute()
         std::cout << "Puerta fijada" << endl;
         contador_cambio_puerta = 0;
     } else {
-        if(contador_cambio_puerta == 5){
+        if(contador_cambio_puerta == 10){ //ESTO TAMBIEN HABRA QUE HACERLE CONSTANTE
             if(estado != SpecificWorker::Estado::GO_THROUGH){
     		    estado = SpecificWorker::Estado::SEARCH_DOOR;
                 //estado = SpecificWorker::Estado::IDLE; ////
@@ -150,6 +150,7 @@ std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::fu
     if(!doors.empty()){
         for(const auto &d: doors){
             if(d.angulo_robot() < door_target.angulo_robot()){
+            //if(std::abs(d.angulo_robot()) < std::abs(door_target.angulo_robot())){
                 door_target = d;
             }
         }
@@ -193,7 +194,7 @@ std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad>  SpecificWorker::f
         return{SpecificWorker::Estado::GO_THROUGH, {0,0,0}};
     }
     else{
-        float const_rot = (angulo_robot > 0) ? 0.4 : -0.4; 
+        float const_rot = (angulo_robot > 0) ? 0.4 : -0.4;
         return {SpecificWorker::Estado::ORIENT, {0,0,const_rot * angulo_robot}};
     }
 }
