@@ -85,15 +85,21 @@ void SpecificWorker::compute()
     //auto doors = doors_extractor(filtered_points);
 
     auto res = std::ranges::find(doors, door_target);
-    if (res != doors.end()) { //or doors.size() == 1) { NO SE SI ESTO HACIA ALGO EN REALIDAD
+    if (res != doors.end() || doors.size() == 1) { // NO SE SI ESTO HACIA ALGO EN REALIDAD
         door_target = *res;
-        // qInfo() << "door_target = " << door_target;
         std::cout << "Puerta fijada" << endl;
+        contador_cambio_puerta = 0;
     } else {
-        if(estado != SpecificWorker::Estado::GO_THROUGH){
-    		estado = SpecificWorker::Estado::SEARCH_DOOR;
-            //estado = SpecificWorker::Estado::IDLE; ////
-        	omnirobot_proxy->setSpeedBase(0, 0, 0);
+        if(contador_cambio_puerta == 5){
+            if(estado != SpecificWorker::Estado::GO_THROUGH){
+    		    estado = SpecificWorker::Estado::SEARCH_DOOR;
+                //estado = SpecificWorker::Estado::IDLE; ////
+        	    omnirobot_proxy->setSpeedBase(0, 0, 0);
+                contador_cambio_puerta = 0;
+            }
+        }
+        else{
+              contador_cambio_puerta++;
         }
     	qInfo() << "No door detected";
     }
@@ -151,7 +157,7 @@ std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::fu
         return {SpecificWorker::Estado::MOVE, vel};
     }
     else{
-        SpecificWorker::Velocidad vel = {0.3, 0, -0.5};
+        SpecificWorker::Velocidad vel = {0.3, 0, 0.5};
         std::cout << "No se han detectado puertas, se mueve el robot para buscar" << endl;
         return {SpecificWorker::Estado::SEARCH_DOOR, vel};
     }
@@ -187,7 +193,7 @@ std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad>  SpecificWorker::f
         return{SpecificWorker::Estado::GO_THROUGH, {0,0,0}};
     }
     else{
-        float const_rot = (angulo_robot > 0) ? 0.4 : -0.4; //NO ESTOY SEGURO AL 100% PERO ESTO DEBERIA EVITAR QUE SE QUEDE BLOQUEADO EN ORIENT CUANDO EL ROBOT ESTA DE ESPALDA A LA PUERTA
+        float const_rot = (angulo_robot > 0) ? 0.4 : -0.4; 
         return {SpecificWorker::Estado::ORIENT, {0,0,const_rot * angulo_robot}};
     }
 }

@@ -84,6 +84,8 @@ class SpecificWorker : public GenericWorker
         using Doors = std::vector<Door>;
         Door door_target;
 
+        int contador_cambio_puerta = 0;
+
         struct Velocidad{
             float velx;
             float vely;
