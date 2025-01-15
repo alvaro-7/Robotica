@@ -85,7 +85,7 @@ void SpecificWorker::compute()
     //auto doors = doors_extractor(filtered_points);
 
     auto res = std::ranges::find(doors, door_target);
-    if (res != doors.end() or doors.size() == 1) {
+    if (res != doors.end()) { //or doors.size() == 1) { NO SE SI ESTO HACIA ALGO EN REALIDAD
         door_target = *res;
         // qInfo() << "door_target = " << door_target;
         std::cout << "Puerta fijada" << endl;
@@ -134,7 +134,7 @@ void SpecificWorker::compute()
         auto vel = std::get<1>(mov);
         omnirobot_proxy->setSpeedBase(vel.velx, vel.vely, vel.giro);
         estado = std::get<0>(mov);
-        printf("Velocidad: %f %f - \n", vel.velx, vel.giro);
+        printf("Velocidad: %f %f \n", vel.vely, vel.giro);
     } catch(const Ice::Exception &e)
     {  std::cout << "Error reading from Camera" << e << std::endl; 	}
 }
@@ -174,19 +174,20 @@ std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::fu
     }
     else{
         float rot  = const_giro * door_target.angulo_robot();
-        float velx = const_vel * (1.0 - fabs(rot));
-        return {SpecificWorker::Estado::MOVE, {0, velx, rot}};
+        float vely = const_vel * (1.0 - fabs(rot));
+        return {SpecificWorker::Estado::MOVE, {0, vely, rot}};
     }
 }
 
 std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad>  SpecificWorker::func_orient(){
-    float const_rot = -0.4;
+    // float const_rot = -0.4;
     float angulo_robot = door_target.angulo_robot();
     cout << "Angulo_robot: " << angulo_robot << endl;
     if( angulo_robot < 0.01 && angulo_robot > -0.01){ //UNA VEZ ENCONTRADO UNOS BUENOS PARAMETROS, HACERLOS UNA CONSTANTE
         return{SpecificWorker::Estado::GO_THROUGH, {0,0,0}};
     }
     else{
+        float const_rot = (angulo_robot > 0) ? 0.4 : -0.4; //NO ESTOY SEGURO AL 100% PERO ESTO DEBERIA EVITAR QUE SE QUEDE BLOQUEADO EN ORIENT CUANDO EL ROBOT ESTA DE ESPALDA A LA PUERTA
         return {SpecificWorker::Estado::ORIENT, {0,0,const_rot * angulo_robot}};
     }
 }
