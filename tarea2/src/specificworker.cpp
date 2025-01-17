@@ -85,25 +85,26 @@ void SpecificWorker::compute()
     //auto doors = doors_extractor(filtered_points);
 
     auto res = std::ranges::find(doors, door_target);
-    if (res != doors.end() || doors.size() == 1) { // NO SE SI ESTO HACIA ALGO EN REALIDAD
+    if (res != doors.end()) {// || doors.size() == 1) { // NO SE SI ESTO HACIA ALGO EN REALIDAD
         door_target = *res;
         std::cout << "Puerta fijada" << endl;
         contador_cambio_puerta = 0;
     } else {
-        if(contador_cambio_puerta == 10){ //ESTO TAMBIEN HABRA QUE HACERLE CONSTANTE
-            if(estado != SpecificWorker::Estado::GO_THROUGH){
-    		    estado = SpecificWorker::Estado::SEARCH_DOOR;
+        if(estado != SpecificWorker::Estado::GO_THROUGH){ //ESTO TAMBIEN HABRA QUE HACERLE CONSTANTE
+            if(contador_cambio_puerta == 30){
+                estado = SpecificWorker::Estado::SEARCH_DOOR;
                 //estado = SpecificWorker::Estado::IDLE; ////
         	    omnirobot_proxy->setSpeedBase(0, 0, 0);
                 contador_cambio_puerta = 0;
             }
-        }
-        else{
-              contador_cambio_puerta++;
+            else{
+                contador_cambio_puerta++;
+            }
         }
     	qInfo() << "No door detected";
     }
 
+    cout << "Contador: " << contador_cambio_puerta << endl;
 
     std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> mov;
     switch(estado)
@@ -140,7 +141,7 @@ void SpecificWorker::compute()
         auto vel = std::get<1>(mov);
         omnirobot_proxy->setSpeedBase(vel.velx, vel.vely, vel.giro);
         estado = std::get<0>(mov);
-        printf("Velocidad: %f %f \n", vel.vely, vel.giro);
+        //printf("Velocidad: %f %f \n", vel.vely, vel.giro); ////
     } catch(const Ice::Exception &e)
     {  std::cout << "Error reading from Camera" << e << std::endl; 	}
 }
@@ -173,9 +174,10 @@ std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::fu
     float objetivo_x = p_objetivo.x;
     float objetivo_y = p_objetivo.y;
     float distancia = sqrt(pow(objetivo_x, 2) + pow(objetivo_y, 2));
-	cout << "Distancia: " << distancia << endl;
+	door_target.print();
+    cout << "Distancia: " << distancia << endl;
 
-    if(distancia < 900){ //LA DISTANCIA CUANDO SE ENCUENTRE UNA CON LA QUE FUNCIONA CORRECTAMENTE HAY QUE HACERLA CONSTANTE EN EL .H
+    if(distancia < 900 && distancia > 10){ //LA DISTANCIA CUANDO SE ENCUENTRE UNA CON LA QUE FUNCIONA CORRECTAMENTE HAY QUE HACERLA CONSTANTE EN EL .H
         std::cout << "Distancia a la puerta adecuada, toca orientarse a ella" << endl;
         return {SpecificWorker::Estado::ORIENT, {0, 0, 0}};
     }

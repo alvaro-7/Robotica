@@ -76,7 +76,9 @@ class SpecificWorker : public GenericWorker
                 middle = d.middle;
                 return *this;
             };
-            void print(){};
+            void print() const{
+                cout << "Puntos middle: " << middle.x << ", " << middle.y << endl;
+            };
             float angulo_robot() const{
                 return atan2(middle.x, middle.y);
             }
