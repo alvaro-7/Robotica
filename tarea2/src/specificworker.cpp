@@ -69,31 +69,20 @@ void SpecificWorker::compute()
 {
     RoboCompLidar3D::TData ldata;
     ldata = lidar3d_proxy->getLidarData("helios", 0, 360, 1);
-//    ldata =  lidar3d_proxy->getLidarData("bpearl", 0, 2*M_PI, 1);
     const auto &points = ldata.points;
     if (points.empty()) return;
-//    std::cout << __FUNCTION__ << " " << ldata.points.size() << std::endl;
-//
-//    RoboCompLidar3D::TPoints filtered_points;
-//    for(const auto &p : ldata.points)
-//        if(p.z < 500 and p.z > 200 )
-//            filtered_points.push_back(RoboCompLidar3D::TPoint{.x=p.x*1000, .y=p.y*1000, .z=p.z*1000});
-//
-//    std::cout << __FUNCTION__ << " " << filtered_points.size() << std::endl;
 
     auto doors = doors_extractor(points);
-    //auto doors = doors_extractor(filtered_points);
 
     auto res = std::ranges::find(doors, door_target);
-    if (res != doors.end()) {// || doors.size() == 1) { // NO SE SI ESTO HACIA ALGO EN REALIDAD
+    if (res != doors.end()) {
         door_target = *res;
         std::cout << "Puerta fijada" << endl;
         contador_cambio_puerta = 0;
     } else {
-        if(estado != SpecificWorker::Estado::GO_THROUGH){ //ESTO TAMBIEN HABRA QUE HACERLE CONSTANTE
-            if(contador_cambio_puerta == 30){
+        if(estado != SpecificWorker::Estado::GO_THROUGH){
+            if(contador_cambio_puerta == LIMITE_CONTADOR_PUERTAS){
                 estado = SpecificWorker::Estado::SEARCH_DOOR;
-                //estado = SpecificWorker::Estado::IDLE; ////
         	    omnirobot_proxy->setSpeedBase(0, 0, 0);
                 contador_cambio_puerta = 0;
             }
@@ -141,7 +130,7 @@ void SpecificWorker::compute()
         auto vel = std::get<1>(mov);
         omnirobot_proxy->setSpeedBase(vel.velx, vel.vely, vel.giro);
         estado = std::get<0>(mov);
-        //printf("Velocidad: %f %f \n", vel.vely, vel.giro); ////
+        printf("Velocidad: %f %f \n", vel.vely, vel.giro);
     } catch(const Ice::Exception &e)
     {  std::cout << "Error reading from Camera" << e << std::endl; 	}
 }
@@ -151,7 +140,6 @@ std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::fu
     if(!doors.empty()){
         for(const auto &d: doors){
             if(d.angulo_robot() < door_target.angulo_robot()){
-            //if(std::abs(d.angulo_robot()) < std::abs(door_target.angulo_robot())){
                 door_target = d;
             }
         }
@@ -166,38 +154,31 @@ std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::fu
 }
 
 std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::func_move(){
-    RoboCompLidar3D::TPoint& p_objetivo = door_target.middle;
-
-    float const_vel = 200;  //ESTAS VARIABLES HABRA QUE IR PROBANDO CON VARIOS VALORES PARA ENCONTRAR UNOS BUENOS
-    float const_giro = 0.4; //UNA VEZ QUE SE HAYAN ENCONTRADO BUENOS VALORES SE HACEN CONSTANTES DEL .H
-
-    float objetivo_x = p_objetivo.x;
-    float objetivo_y = p_objetivo.y;
-    float distancia = sqrt(pow(objetivo_x, 2) + pow(objetivo_y, 2));
-	door_target.print();
+    float objetivo_x = door_target.middle.x;
+    float objetivo_y = door_target.middle.y;
+    float distancia = std::hypot(objetivo_x, objetivo_y);
     cout << "Distancia: " << distancia << endl;
 
-    if(distancia < 900 && distancia > 10){ //LA DISTANCIA CUANDO SE ENCUENTRE UNA CON LA QUE FUNCIONA CORRECTAMENTE HAY QUE HACERLA CONSTANTE EN EL .H
+    if(distancia < CONST_DIST && distancia > 10){
         std::cout << "Distancia a la puerta adecuada, toca orientarse a ella" << endl;
         return {SpecificWorker::Estado::ORIENT, {0, 0, 0}};
     }
     else{
-        float rot  = const_giro * door_target.angulo_robot();
-        float vely = const_vel * (1.0 - fabs(rot));
+        float rot  = CONST_ROT * door_target.angulo_robot();
+        float vely = VEL_MOVE * (1.0 - fabs(rot));
         return {SpecificWorker::Estado::MOVE, {0, vely, rot}};
     }
 }
 
 std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad>  SpecificWorker::func_orient(){
-    // float const_rot = -0.4;
     float angulo_robot = door_target.angulo_robot();
     cout << "Angulo_robot: " << angulo_robot << endl;
-    if( angulo_robot < 0.01 && angulo_robot > -0.01){ //UNA VEZ ENCONTRADO UNOS BUENOS PARAMETROS, HACERLOS UNA CONSTANTE
+    if( angulo_robot < LIMITE_ANGULO && angulo_robot > -LIMITE_ANGULO){
         return{SpecificWorker::Estado::GO_THROUGH, {0,0,0}};
     }
     else{
-        float const_rot = (angulo_robot > 0) ? 0.4 : -0.4;
-        return {SpecificWorker::Estado::ORIENT, {0,0,const_rot * angulo_robot}};
+        float rot = (angulo_robot > 0) ? CONST_ROT : -CONST_ROT;
+        return {SpecificWorker::Estado::ORIENT, {0,0,rot * angulo_robot}};
     }
 }
 
@@ -205,13 +186,13 @@ std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::fu
     if(!SpecificWorker::timer_inicializado){
         SpecificWorker::timer_inicializado = true;
         SpecificWorker::tiempo_inicio = std::chrono::steady_clock::now();
-        return {SpecificWorker::Estado::GO_THROUGH, {0, 450, 0}};
+        return {SpecificWorker::Estado::GO_THROUGH, {0, VEL_GO, 0}};
     }
-    else if(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - SpecificWorker::tiempo_inicio).count() > SpecificWorker::tiempo_limite){
+    else if(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - SpecificWorker::tiempo_inicio).count() > SpecificWorker::TIEMPO_LIMITE){
         SpecificWorker::timer_inicializado = false;
         return {SpecificWorker::Estado::SEARCH_DOOR, {0, 0, 0}};
     }
-    return {SpecificWorker::Estado::GO_THROUGH, {0, 450, 0}};
+    return {SpecificWorker::Estado::GO_THROUGH, {0, VEL_GO, 0}};
 }
 
 SpecificWorker::Doors
@@ -222,7 +203,7 @@ SpecificWorker::doors_extractor(const RoboCompLidar3D::TPoints  &points)
     auto doors = get_doors(peaks);
     auto final_doors = filter_doors(doors);
 
-    draw_lidar(lines.middle, viewer); //NO SE SI SE DEBE PINTAR AQUI, O DESPUES DE LOS ESTADOS
+    draw_lidar(lines.middle, viewer);
     draw_doors(final_doors, viewer);
     return final_doors;
 }
@@ -232,13 +213,7 @@ SpecificWorker::Lines SpecificWorker::extract_lines(const RoboCompLidar3D::TPoin
     Lines lines;
     for(const auto &p: points)
     {
-//        if(p.z > LOW_LOW and p.z < LOW_HIGH)
-//            lines.low.push_back(p);
-//        if(p.z > MIDDLE_LOW and p.z < MIDDLE_HIGH)
-//            lines.middle.push_back(p);
-//        if(p.z > HIGH_LOW and p.z < HIGH_HIGH)
-//            lines.high.push_back(p);
-		if(p.z > 1000 and p.z < 2000){
+		if(p.z > LIMITE_LINES_BAJO and p.z < LIMITE_LINES_ALTO){
         	lines.low.push_back(p);
             lines.high.push_back(p);
             lines.middle.push_back(p);
@@ -249,7 +224,6 @@ SpecificWorker::Lines SpecificWorker::extract_lines(const RoboCompLidar3D::TPoin
 
 SpecificWorker::Lines SpecificWorker::extract_peaks(const SpecificWorker::Lines &lines) {
     Lines peaks;
-    const float THRES_PEAK = 1000; //ESTO CUANDO SE VAYA A HACER LA IMPLEMENTACION FINAL HAY QUE PONERLO EN EL .H
 
     for (const auto &both: iter::sliding_window(lines.low, 2))
         if (fabs(both[1].r - both[0].r) > THRES_PEAK) {
@@ -281,12 +255,10 @@ SpecificWorker::get_doors(const SpecificWorker::Lines &peaks) {
         return std::hypot(a.x-b.x, a.y-b.y);
     };
 
-    const float THRES_DOOR = 400; //500 //ESTO CUANDO SE VAYA A HACER LA IMPLEMENTACION FINAL HAY QUE PONERLO EN EL .H
-
+    const float THRES_DOOR = 400;
     auto near_door = [dist, THRES_DOOR](auto &doors, auto d){
         for(auto &&old: doors)
         {
-            // qInfo() << dist(old.left, d.left) << dist(old.right, d.right) << dist(old.right, d.left) << dist(old.left, d.right);
             if( dist(old.left, d.left) < THRES_DOOR or
                 dist(old.right, d.right) < THRES_DOOR or
                 dist(old.right, d.left) < THRES_DOOR or
@@ -297,7 +269,7 @@ SpecificWorker::get_doors(const SpecificWorker::Lines &peaks) {
     };
 
     for(auto &par : peaks.low | iter::combinations(2)){
-        if(dist(par[0], par[1]) < 1400 && dist(par[0], par[1]) > 500){
+        if(dist(par[0], par[1]) < LIMITE_DOORS_ALTO && dist(par[0], par[1]) > LIMITE_DOORS_BAJO){
             auto door = Door(par[0], par[1]);
             if(!near_door(doors_low, door)) {
                 doors_low.emplace_back(par[0], par[1]);
@@ -305,7 +277,7 @@ SpecificWorker::get_doors(const SpecificWorker::Lines &peaks) {
         }
     }
     for(auto &par : peaks.middle | iter::combinations(2)){
-        if(dist(par[0], par[1]) < 1400 && dist(par[0], par[1]) > 500){
+        if(dist(par[0], par[1]) < LIMITE_DOORS_ALTO && dist(par[0], par[1]) > LIMITE_DOORS_BAJO){
             auto door = Door(par[0], par[1]);
             if(!near_door(doors_middle, door)) {
                 doors_middle.emplace_back(par[0], par[1]);
@@ -313,7 +285,7 @@ SpecificWorker::get_doors(const SpecificWorker::Lines &peaks) {
         }
     }
     for(auto &par : peaks.high | iter::combinations(2)){
-        if(dist(par[0], par[1]) < 1400 && dist(par[0], par[1]) > 500){
+        if(dist(par[0], par[1]) < LIMITE_DOORS_ALTO && dist(par[0], par[1]) > LIMITE_DOORS_BAJO){
             auto door = Door(par[0], par[1]);
             if(!near_door(doors_high, door)) {
                 doors_high.emplace_back(par[0], par[1]);

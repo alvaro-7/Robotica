@@ -50,6 +50,20 @@ class SpecificWorker : public GenericWorker
         bool startup_check_flag;
         AbstractGraphicViewer *viewer;
 
+        //CONSTANTES
+        const int LIMITE_CONTADOR_PUERTAS = 30;
+        const float CONST_ROT = 0.4;
+        const float VEL_MOVE = 200;
+        const float CONST_DIST = 900;
+        const float LIMITE_ANGULO = 0.01;
+        const float VEL_GO = 450;
+        const int TIEMPO_LIMITE = 14000;
+        const float THRES_PEAK = 1000;
+        const float LIMITE_LINES_BAJO = 1000;
+        const float LIMITE_LINES_ALTO = 2000;
+        const float LIMITE_DOORS_BAJO = 500;
+        const float LIMITE_DOORS_ALTO = 1400;
+
         struct Door
         {
             RoboCompLidar3D::TPoint left, right, middle;
@@ -64,11 +78,6 @@ class SpecificWorker : public GenericWorker
             {
                 return std::hypot(d.middle.x - middle.x, d.middle.y - middle.y) < THRESHOLD;
             };
-            // A partir de C++20 si defines el "==" se te define solo el "!=" como el contrario del otro.
-            /*bool operator!=(const Door &d) const
-            {
-                return !(std::hypot(d.middle.x - middle.x, d.middle.y - middle.y) < THRESHOLD);
-            };*/
             Door& operator=(const Door &d)
             {
                 left = d.left;
@@ -96,7 +105,7 @@ class SpecificWorker : public GenericWorker
 
 		std::chrono::steady_clock::time_point tiempo_inicio;
     	bool timer_inicializado = false;
-    	const int tiempo_limite = 14000; //14000
+
 
         enum class Estado{IDLE, SEARCH_DOOR, ORIENT, MOVE, GO_THROUGH};
         Estado estado = Estado::SEARCH_DOOR;
