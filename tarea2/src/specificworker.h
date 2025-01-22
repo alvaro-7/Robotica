@@ -115,15 +115,8 @@ class SpecificWorker : public GenericWorker
         std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> func_move();
         std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> func_orient();
         std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> func_go_through();
+        RoboCompLidar3D::TPoint perpPoint();
 
-        const float LOW_LOW = 0;
-        const float LOW_HIGH = 400;
-        const float MIDDLE_LOW = 800;
-        const float MIDDLE_HIGH = 1200;
-        const float HIGH_LOW = 1600;
-        const float HIGH_HIGH = 2000;
-
-    
         struct Lines
         {
             RoboCompLidar3D::TPoints low, middle, high;
