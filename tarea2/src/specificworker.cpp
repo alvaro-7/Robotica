@@ -154,19 +154,12 @@ std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::fu
 }
 
 std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::func_move(){
-//    float objetivo_x = door_target.middle.x;
-//    float objetivo_y = door_target.middle.y;
     RoboCompLidar3D::TPoint punto_perp = perpPoint();
     float objetivo_x = punto_perp.x;
     float objetivo_y = punto_perp.y;
     float distancia = std::hypot(objetivo_x, objetivo_y);
-    float distancia_puerta = std::hypot(door_target.middle.x, door_target.middle.y);
-    cout << "Distancia al punto: " << distancia << " Distancia a la puerta: " << distancia_puerta << endl;
+    cout << "Distancia al punto: " << distancia << endl;
 
-    auto point = viewer->scene.addRect(-50,-50,100, 100, QPen(QColor("Yellow")), QBrush(QColor("Yellow")));
-    point->setPos(objetivo_x, objetivo_y);
-
-    //if(distancia < CONST_DIST && distancia > 10){
     if(distancia < 50) {
         std::cout << "Distancia a la puerta adecuada, toca orientarse a ella" << endl;
         return {SpecificWorker::Estado::ORIENT, {0, 0, 0}};
@@ -182,10 +175,6 @@ std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::fu
 RoboCompLidar3D::TPoint SpecificWorker::perpPoint(){
     RoboCompLidar3D::TPoint d = {door_target.right.x - door_target.left.x, door_target.right.y - door_target.left.y};
     RoboCompLidar3D::TPoint perp = {-d.y, d.x};
-
-//    double longitud = std::sqrt(perp.x * perp.x + perp.y * perp.y);
-//    perp.x /= longitud;
-//    perp.y /= longitud;
 
     RoboCompLidar3D::TPoint r1 = {door_target.middle.x + perp.x, door_target.middle.y + perp.y};
     RoboCompLidar3D::TPoint r2 = {door_target.middle.x - perp.x, door_target.middle.y - perp.y};
