@@ -165,7 +165,6 @@ std::tuple<SpecificWorker::Estado, SpecificWorker::Velocidad> SpecificWorker::fu
         return {SpecificWorker::Estado::ORIENT, {0, 0, 0}};
     }
     else{
-        //float rot  = CONST_ROT * door_target.angulo_robot();
         float rot = CONST_ROT * atan2(objetivo_x, objetivo_y);
         float vely = VEL_MOVE * (1.0 - fabs(rot));
         return {SpecificWorker::Estado::MOVE, {0, vely, rot}};
